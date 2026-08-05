@@ -8,6 +8,7 @@
 #include <linux/mutex.h>
 #include <linux/module.h>
 #include <linux/soc/qcom/panel_event_notifier.h>
+#include <linux/srcu.h>
 
 struct panel_event_notifier_entry {
 	panel_event_notifier_handler handler;
@@ -17,6 +18,7 @@ struct panel_event_notifier_entry {
 };
 
 static DEFINE_MUTEX(panel_event_notifier_entries_lock);
+DEFINE_STATIC_SRCU(panel_event_notifier_srcu);
 static struct panel_event_notifier_entry
 		panel_event_notifier_entries[PANEL_EVENT_NOTIFIER_CLIENT_MAX];
 
@@ -106,6 +108,9 @@ void panel_event_notifier_unregister(void *cookie)
 	entry->pvt_data = NULL;
 	entry->tag = PANEL_EVENT_NOTIFICATION_NONE;
 	mutex_unlock(&panel_event_notifier_entries_lock);
+
+	/* Wait until callbacks that captured the old private data have exited. */
+	synchronize_srcu(&panel_event_notifier_srcu);
 }
 EXPORT_SYMBOL(panel_event_notifier_unregister);
 
@@ -128,15 +133,19 @@ void panel_event_notification_trigger(enum panel_event_notifier_tag tag,
 {
 	struct panel_event_notifier_entry *entry;
 	panel_event_notifier_handler handler = NULL;
-	void *pvt_data;
+	void *pvt_data = NULL;
+	int srcu_idx;
 	int i;
 
-	if (!panel_event_notifier_tag_valid(tag)) {
+	if (!panel_event_notifier_tag_valid(tag) || !notification) {
 		pr_err("Invalid panel notifier tag\n");
 		return;
 	}
 
+	srcu_idx = srcu_read_lock(&panel_event_notifier_srcu);
 	for (i = 0; i < PANEL_EVENT_NOTIFIER_CLIENT_MAX; i++) {
+		handler = NULL;
+		pvt_data = NULL;
 		mutex_lock(&panel_event_notifier_entries_lock);
 		entry = &panel_event_notifier_entries[i];
 		if (notification->panel != entry->panel) {
@@ -164,6 +173,7 @@ void panel_event_notification_trigger(enum panel_event_notifier_tag tag,
 			handler(tag, notification, pvt_data);
 
 	}
+	srcu_read_unlock(&panel_event_notifier_srcu, srcu_idx);
 }
 EXPORT_SYMBOL(panel_event_notification_trigger);
 

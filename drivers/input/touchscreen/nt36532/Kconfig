@@ -1,0 +1,16 @@
+# SPDX-License-Identifier: GPL-2.0-only
+
+config TOUCHSCREEN_NT36532_SPI
+	tristate "Novatek NT36532 host-download SPI touchscreen"
+	depends on SPI_MASTER && OF && DRM
+	depends on QCOM_SMEM
+	depends on QCOM_PANEL_EVENT_NOTIFIER
+	depends on QTI_BATTERY_CHARGER
+	depends on TOUCHSCREEN_XIAOMI_TOUCHFEATURE_LCD
+	select DRM_PANEL
+	help
+	  Say Y or M here if you have a Novatek NT36532 no-flash
+	  touchscreen connected over SPI. The controller firmware is
+	  downloaded by the driver during probe and resume.
+
+	  If built as a module, it will be called nt36532_touch.

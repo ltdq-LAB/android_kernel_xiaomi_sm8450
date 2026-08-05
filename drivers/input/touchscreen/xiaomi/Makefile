@@ -1,1 +1,2 @@
 obj-$(CONFIG_TOUCHSCREEN_XIAOMI_TOUCHFEATURE) += xiaomi_touch.o
+obj-$(CONFIG_TOUCHSCREEN_XIAOMI_TOUCHFEATURE_LCD) += xiaomi_touch_lcd.o

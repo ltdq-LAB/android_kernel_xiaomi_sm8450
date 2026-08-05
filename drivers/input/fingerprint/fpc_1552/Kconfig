@@ -1,0 +1,8 @@
+config FINGERPRINT_FPC_1552
+	tristate "FPC 1552 fingerprint sensor"
+	default n
+	depends on INPUT_FINGERPRINT
+	help
+	  Say Y here to enable the FPC 1552 platform-resource driver.
+	  If unsure, say N.
+	  To compile this driver as a module, choose M here.

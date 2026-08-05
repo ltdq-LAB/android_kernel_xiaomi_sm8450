@@ -9,3 +9,16 @@ config TOUCHSCREEN_XIAOMI_TOUCHFEATURE
 	  If unsure, say N.
 
 	  To compile this driver as a module, choose M here.
+
+config TOUCHSCREEN_XIAOMI_TOUCHFEATURE_LCD
+	tristate "Xiaomi LCD Touch Feature"
+	depends on INPUT_TOUCHSCREEN
+	depends on TOUCHSCREEN_XIAOMI_TOUCHFEATURE = n
+	help
+	  Say Y here if you want to enable the LCD/TDDI-specific Xiaomi
+	  touch feature interface. It forwards wake-gesture state directly
+	  to the registered LCD touch controller.
+
+	  If unsure, say N.
+
+	  To compile this driver as a module, choose M here.
